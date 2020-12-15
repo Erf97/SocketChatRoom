@@ -190,6 +190,10 @@ public class Server {
 
 		public boolean prase(String messageString) {
 			StringTokenizer sTokenizer = new StringTokenizer(messageString);
+			if(!sTokenizer.hasMoreTokens()) {
+				sendMsg(writer, "ÄúµÄÊäÈëÎª¿Õ");
+				return false;
+			}
 			String cmdString = sTokenizer.nextToken();
 			switch (cmdString) {
 			case "/create":
