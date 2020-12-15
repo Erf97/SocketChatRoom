@@ -23,13 +23,15 @@ public class Server {
 	private ServerSocket mainServerSocket;
 	private ServerThread serverThread;
 	private int port = 1234;
-	private Map<User,String> userChannelMap; //用户-频道表，记录用户在哪个频道，消息转发依此为据
+	private Map<User,Channel> userChannelMap; //用户-频道表，记录用户在哪个频道，消息转发依此为据
+	private Map<String,Channel> nameChannelMap;
 	
 	public Server() throws IOException {
 		channels = new ArrayList<Channel>();
 		mainClients = new ArrayList<MainClientsThread>();
 		mainServerSocket = new ServerSocket(port);
-		userChannelMap = new HashMap<User,String>();
+		userChannelMap = new HashMap<User,Channel>();
+		nameChannelMap = new HashMap<String,Channel>();
 		serverThread = new ServerThread(mainServerSocket);
 		serverThread.start();
 	}
@@ -73,10 +75,14 @@ public class Server {
 			return false;
 		}
 		if(passwordString == null) {
-			channels.add(new Channel(nameString,max));
+			Channel channel = new Channel(nameString,max);
+			channels.add(channel);
+			nameChannelMap.put(nameString,channel);
 		}
 		else {
-			channels.add(new Channel(nameString,max,true,passwordString));
+			Channel channel = new Channel(nameString,max,true,passwordString);
+			channels.add(channel);
+			nameChannelMap.put(nameString,channel);
 		}
 		return true;
 	}
@@ -91,6 +97,12 @@ public class Server {
 		writer.flush();
 	}
 	
+	public void channelBoardCast(Channel channel,String msgString) {
+		for(int i=0;i<channel.getClients().size();i++) {
+			sendMsg(channel.getClients().get(i).getWriter(),msgString);
+		}
+	}
+	
 	/**
 	 * 将聊天信息发送给频道中的所有客户
 	 * @param msgString 聊天信息
@@ -98,16 +110,35 @@ public class Server {
 	 * @param userNameString 发送人昵称
 	 * @return
 	 */
-	public boolean chat(String msgString,String channelNameString,String userNameString,boolean isAnonymous) {
+	public boolean chat(String msgString,Channel channel,String userNameString,boolean isAnonymous) {
 		if(isAnonymous) {
 			userNameString = "匿名用户";
 		}
-		for(int i=0;i<mainClients.size();i++) {
-			if(userChannelMap.get(mainClients.get(i).getUser()) == channelNameString) {
-				sendMsg(mainClients.get(i).getWriter(),(userNameString + "说：" + msgString));
-			}
+		for(int i=0;i<channel.getClients().size();i++) {
+			sendMsg(channel.getClients().get(i).getWriter(),(userNameString + "说：" + msgString));
 		}
 		return true;
+	}
+	
+	public boolean joinChannel(MainClientsThread client,Channel channel,String passwordString) {
+		if(channel.isEncrypted()) {
+			if(passwordString != channel.getPasswordString()) {
+				sendMsg(client.getWriter(), "频道密码错误");
+				return false;
+			}
+			else {
+				channel.addClientToChannel(client);
+				userChannelMap.put(client.getUser(),channel);
+				channelBoardCast(channel, "欢迎"+client.getUser().getName()+"进入频道！");
+				return true;
+			}
+		}
+		else {
+			channel.addClientToChannel(client);
+			userChannelMap.put(client.getUser(),channel);
+			channelBoardCast(channel, "欢迎"+client.getUser().getName()+"进入频道！");
+			return true;
+		}
 	}
 	
 	public static void main(String[] args) {
@@ -166,16 +197,31 @@ public class Server {
 				String passwordString = sTokenizer.hasMoreTokens()?sTokenizer.nextToken():null;
 //				int max = sTokenizer.hasMoreTokens()?Integer.valueOf(sTokenizer.nextToken()):null;
 				int max = 10;
-				return createChannel(nameString,passwordString,max);
+				if(createChannel(nameString,passwordString,max)) {
+					return true;
+				}
+				else {
+					sendMsg(writer, "创建频道失败");
+				}
 				
 			case "/list":
 				sendMsg(writer, getChannelsList());
 				return true;
 			
 			case "/join": //加入频道
-				
-				return true;
-				
+				String channelNameString = sTokenizer.hasMoreTokens()?sTokenizer.nextToken():null;
+				String channelPasswordString = sTokenizer.hasMoreTokens()?sTokenizer.nextToken():null;
+				if(channelNameString == null) {
+					return false;
+				}
+				Channel channel = nameChannelMap.get(channelNameString);
+				if(!joinChannel(this,channel,channelPasswordString)) {
+					sendMsg(writer, "加入频道失败");
+				}
+				else {
+					return true;
+				}
+			
 			case "/to": //私聊
 				
 				return true;
@@ -231,7 +277,7 @@ public class Server {
 				try {
 					messageString = reader.readLine();
 					if(!prase(messageString)) {
-						sendMsg(writer, "输入命令有误！");
+						sendMsg(writer, "请重新输入");
 					}
 				} catch (IOException e) {
 					break;
@@ -286,7 +332,11 @@ public class Server {
 			return clients.size();
 		}
 		
-		public void addClientToChannel(User client) {
+		public ArrayList<MainClientsThread> getClients() {
+			return clients;
+		}
+
+		public void addClientToChannel(MainClientsThread client) {
 			clients.add(client);
 		}
 		
@@ -295,14 +345,14 @@ public class Server {
 		private int max;
 		private boolean isEncrypted;
 		private String passwordString;
-		private ArrayList<User> clients;
+		private ArrayList<MainClientsThread> clients;
 		
 		public Channel(String nameString,int max,boolean isEncrypted,String passwordString) {
 			this.nameString = nameString;
 			this.max = max;
 			this.isEncrypted = isEncrypted;
 			this.passwordString = passwordString;
-			this.clients = new ArrayList<User>();
+			this.clients = new ArrayList<MainClientsThread>();
 		}
 		
 		public Channel(String nameString,int max) {
