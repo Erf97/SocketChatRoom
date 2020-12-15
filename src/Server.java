@@ -14,12 +14,12 @@ import java.util.StringTokenizer;
 
 public class Server {
 	
-	private ArrayList<Channel> channels;
-	private ArrayList<MainClientsThread> mainClients;
+	private ArrayList<Channel> channels; //频道列表
+	private ArrayList<MainClientsThread> mainClients; //客户列表
 	private ServerSocket mainServerSocket;
 	private ServerThread serverThread;
 	private int port = 1234;
-	private Map<User,String> userChannelMap;
+	private Map<User,String> userChannelMap; //用户-频道表，记录用户在哪个频道，消息转发依此为据
 	
 	public Server() throws IOException {
 		channels = new ArrayList<Channel>();
@@ -30,6 +30,10 @@ public class Server {
 		serverThread.start();
 	}
 	
+	/**
+	 * 
+	 * @return 当前频道列表
+	 */
 	public String getChannelsList() {
 		if(channels.size() == 0) {
 			return "大厅中当前没有频道！";
@@ -45,30 +49,52 @@ public class Server {
 		return listString;
 	}
 	
+	/**
+	 * 
+	 * @param client 新增的客户线程
+	 */
 	synchronized public void addClients(MainClientsThread client) {
 		mainClients.add(client);
 	}
 	
+	/**
+	 * 
+	 * @param nameString 频道名
+	 * @param passwordString 密码
+	 * @param max 最大人数
+	 * @return 添加成功/失败
+	 */
 	synchronized public boolean createChannel(String nameString,String passwordString,int max) {
 		if(nameString == null) {
 			return false;
 		}
 		if(passwordString == null) {
 			channels.add(new Channel(nameString,max));
-			return true;
 		}
 		else {
 			channels.add(new Channel(nameString,max,true,passwordString));
-			return true;
 		}
+		return true;
 	}
 	
+	/**
+	 * ！所有！向客户端发送消息的过程都要通过这个函数来进行，不要直接使用writer
+	 * @param writer 
+	 * @param msgString 要发送的信息
+	 */
 	public void sendMsg(PrintWriter writer,String msgString) {
 		writer.println(msgString);
 		writer.flush();
 	}
 	
-	public boolean send(String msgString,String channelNameString,String userNameString) {
+	/**
+	 * 将聊天信息发送给频道中的所有客户
+	 * @param msgString 聊天信息
+	 * @param channelNameString 发送人所在的频道名
+	 * @param userNameString 发送人昵称
+	 * @return
+	 */
+	public boolean chat(String msgString,String channelNameString,String userNameString) {
 		for(int i=0;i<mainClients.size();i++) {
 			if(userChannelMap.get(mainClients.get(i).getUser()) == channelNameString) {
 				sendMsg(mainClients.get(i).getWriter(),(userNameString + "说：" + msgString));
@@ -129,6 +155,10 @@ public class Server {
 //				int max = sTokenizer.hasMoreTokens()?Integer.valueOf(sTokenizer.nextToken()):null;
 				int max = 10;
 				return createChannel(nameString,passwordString,max);
+				
+			case "/list":
+				sendMsg(writer, getChannelsList());
+				return true;
 			
 			case "/join":
 				return true;
@@ -139,7 +169,7 @@ public class Server {
 					return true;
 				}
 				else {
-					return send(messageString, userChannelMap.get(user), user.getName());
+					return chat(messageString, userChannelMap.get(user), user.getName());
 				}	
 			}
 		}
