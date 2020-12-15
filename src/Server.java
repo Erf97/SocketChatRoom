@@ -129,7 +129,10 @@ public class Server {
 //				int max = sTokenizer.hasMoreTokens()?Integer.valueOf(sTokenizer.nextToken()):null;
 				int max = 10;
 				return createChannel(nameString,passwordString,max);
-
+			
+			case "/join":
+				return true;
+				
 			default:
 				if(userChannelMap.get(user) == null) {
 					sendMsg(writer, "您还没有加入频道，请加入后再发言！");
