@@ -14,8 +14,10 @@ public class Client {
 	private PrintWriter writer;
 	private BufferedReader reader;
 	private static Scanner sc = new Scanner(System.in);
+	private static String[] menu= {"/help"};
 	
 	private boolean isConnected = false;
+	
 	
 	public Client(int port,String hostIp,String name) {
 		if(connectServer(port, hostIp, name)) {
@@ -47,7 +49,9 @@ public class Client {
 	}
 	
 	public static void main(String[] args) {
+		System.out.println("请输入用户名称：");
 		String nameString = sc.nextLine();
+		
 		new Client(1234, "127.0.0.1", nameString);
 	}
 
@@ -86,7 +90,25 @@ public class Client {
 		public void run() {
 			while(isConnected) {
 				String msgString = sc.nextLine();
-				sendMessage(msgString);
+				boolean flag = false;
+				for(int i=0;i<menu.length;i++){
+					if(menu[i].equals(msgString)){
+						flag = true;
+						break;
+					}
+				}
+				if(flag){
+					switch(msgString){
+					case "/help":
+						System.out.println("创建频道：/create + 频道名  " + "查询频道列表：/list                  " + "加入频道：/join + 频道名\n" +
+										   "私聊：/to                " + "显示频道内用户：/userlist             " + "匿名：/anonymous\n" +
+										   "去匿：/no-anonymous      " + "不接收某用户的消息：/block             " + "发起一项投票：/vote\n" +
+										   "全频道广播：/all           " + "将频道内某个用户设置为特别关注：/special  " + "退出频道：/exit\n");
+							
+					}
+				}
+				else
+					sendMessage(msgString);
 			}
 			System.out.println("您已断开连接！");
 		}

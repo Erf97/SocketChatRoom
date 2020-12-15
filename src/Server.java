@@ -42,7 +42,7 @@ public class Server {
 	 */
 	public String getChannelsList() {
 		if(channels.size() == 0) {
-			return "大厅中当前没有频道！";
+			return "大厅中当前没有频道！ 请创建频道！(帮助请输入‘/help’)";
 		}
 		String listString = "频道名\t人数\t是否加密\n";
 		for(int i=0;i<channels.size();i++) {
