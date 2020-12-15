@@ -11,7 +11,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
-
+/**
+ * 
+ * @author Erfan
+ * 所有变量&函数请使用驼峰命名
+ */
 public class Server {
 	
 	private ArrayList<Channel> channels; //频道列表
@@ -94,7 +98,10 @@ public class Server {
 	 * @param userNameString 发送人昵称
 	 * @return
 	 */
-	public boolean chat(String msgString,String channelNameString,String userNameString) {
+	public boolean chat(String msgString,String channelNameString,String userNameString,boolean isAnonymous) {
+		if(isAnonymous) {
+			userNameString = "匿名用户";
+		}
 		for(int i=0;i<mainClients.size();i++) {
 			if(userChannelMap.get(mainClients.get(i).getUser()) == channelNameString) {
 				sendMsg(mainClients.get(i).getWriter(),(userNameString + "说：" + msgString));
@@ -117,6 +124,7 @@ public class Server {
 		private User user;
 		private BufferedReader reader;
 		private PrintWriter writer;
+		private boolean isAnonymous = false;
 			
 		public MainClientsThread(Socket socket) {
 			super();
@@ -145,6 +153,10 @@ public class Server {
 			return writer;
 		}
 		
+		public void setAnonymous(boolean isAnonymous) {
+			this.isAnonymous = isAnonymous;
+		}
+
 		public boolean prase(String messageString) {
 			StringTokenizer sTokenizer = new StringTokenizer(messageString);
 			String cmdString = sTokenizer.nextToken();
@@ -160,8 +172,47 @@ public class Server {
 				sendMsg(writer, getChannelsList());
 				return true;
 			
-			case "/join":
+			case "/join": //加入频道
+				
 				return true;
+				
+			case "/to": //私聊
+				
+				return true;
+				
+			case "/userlist": //显示频道内用户
+				
+				return true;
+				
+			case "/anonymous": //匿名
+				setAnonymous(true);
+				sendMsg(writer, "您已匿名");
+				return true;
+				
+			case "/no-anonymous": //取匿
+				setAnonymous(false);
+				sendMsg(writer, "您已取消匿名");
+				return true;
+				
+			case "/block": //不接收某用户的消息
+				
+				return true;
+				
+			case "/vote": //发起一项投票
+				
+				return true;
+				
+			case "/all": //全频道广播
+				
+				return true;
+			
+			case "/special": //将频道内某个用户设置为特别关注
+				
+				return true;
+				
+			case "/exit": //退出频道
+				
+				return true; 
 				
 			default:
 				if(userChannelMap.get(user) == null) {
@@ -169,7 +220,7 @@ public class Server {
 					return true;
 				}
 				else {
-					return chat(messageString, userChannelMap.get(user), user.getName());
+					return chat(messageString, userChannelMap.get(user), user.getName(),isAnonymous);
 				}	
 			}
 		}
