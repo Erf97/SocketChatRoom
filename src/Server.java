@@ -254,6 +254,10 @@ public class Server {
 					return false;
 				}
 				channel = userChannelMap.get(user);
+				if(channel == null) {
+					sendMsg(writer,"未加入任何频道！请先加入一个频道");
+					return false;
+				}
 				boolean signal = false;
 				for(int i=0;i<channel.getClients().size();i++) {
 					if(channel.getClients().get(i).getUser().getName().equals(toUserName)) {
@@ -274,7 +278,16 @@ public class Server {
 				return true;
 				
 			case "/userlist": //显示频道内用户
-				
+				channel = userChannelMap.get(user);
+				if(channel == null) {
+					sendMsg(writer,"未加入任何频道！请先加入一个频道");
+					return false;
+				}
+				String tmp;
+				for(int i=0;i<channel.getClients().size();i++) {
+					tmp = channel.getClients().get(i).getUser().getName();
+					sendMsg(writer,tmp + "\n");
+					}
 				return true;
 				
 			case "/anonymous": //匿名
