@@ -110,19 +110,29 @@ public class Server {
 	 * @param userNameString 发送人昵称
 	 * @return
 	 */
-	public boolean chat(String msgString,Channel channel,String userNameString,boolean isAnonymous) {
+	public boolean chat(String msgString,Channel channel,String userNameString,boolean isAnonymous,String toUserName) {
 		if(isAnonymous) {
 			userNameString = "匿名用户";
 		}
-		for(int i=0;i<channel.getClients().size();i++) {
+		if(toUserName == null) {
+			for(int i=0;i<channel.getClients().size();i++) {
 			sendMsg(channel.getClients().get(i).getWriter(),(userNameString + "说：" + msgString));
+			}
+		}
+		else {
+			for(int i=0; i<channel.getClients().size(); i++){
+				MainClientsThread clientThread = channel.getClients().get(i);
+				if(clientThread.getUser().getName().equals(toUserName)||clientThread.getUser().getName().equals(userNameString)) {
+					sendMsg(clientThread.getWriter(),(userNameString + "私聊" + toUserName + "说：" + msgString));
+				}
+			}
 		}
 		return true;
 	}
 	
 	public boolean joinChannel(MainClientsThread client,Channel channel,String passwordString) {
 		if(channel.isEncrypted()) {
-			if(!passwordString.equals(channel.getPasswordString())) {
+			if(passwordString != channel.getPasswordString()) {
 				sendMsg(client.getWriter(), "频道密码错误");
 				return false;
 			}
@@ -156,10 +166,12 @@ public class Server {
 		private BufferedReader reader;
 		private PrintWriter writer;
 		private boolean isAnonymous = false;
+		private String privateChatUserName;
 			
 		public MainClientsThread(Socket socket) {
 			super();
 			this.socket = socket;
+			privateChatUserName = null;
 			try {
 				this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				this.writer = new PrintWriter(socket.getOutputStream());
@@ -186,6 +198,14 @@ public class Server {
 		
 		public void setAnonymous(boolean isAnonymous) {
 			this.isAnonymous = isAnonymous;
+		}
+		
+		public void setPrivateChatUserName(String privateChatUserName) {
+			this.privateChatUserName = privateChatUserName;
+		}
+		
+		public void deletePrivateChatUserName() {
+			this.privateChatUserName = null;
 		}
 
 		public boolean prase(String messageString) {
@@ -221,13 +241,36 @@ public class Server {
 				Channel channel = nameChannelMap.get(channelNameString);
 				if(!joinChannel(this,channel,channelPasswordString)) {
 					sendMsg(writer, "加入频道失败");
+					return false;
 				}
 				else {
 					return true;
 				}
 			
 			case "/to": //私聊
-				
+				String toUserName = sTokenizer.hasMoreTokens()?sTokenizer.nextToken():null;
+				if(toUserName == null) {
+					sendMsg(writer,"请输入私聊用户昵称！");
+					return false;
+				}
+				channel = userChannelMap.get(user);
+				boolean signal = false;
+				for(int i=0;i<channel.getClients().size();i++) {
+					if(channel.getClients().get(i).getUser().getName().equals(toUserName)) {
+						signal = true;
+						break;
+					}
+				}
+				if(signal)
+					setPrivateChatUserName(toUserName);
+				else{
+					sendMsg(writer,"此频道该用户不存在！");
+					return false;
+				}
+				return true;
+			
+			case "/endto": //结束私聊
+				deletePrivateChatUserName();
 				return true;
 				
 			case "/userlist": //显示频道内用户
@@ -270,7 +313,7 @@ public class Server {
 					return true;
 				}
 				else {
-					return chat(messageString, userChannelMap.get(user), user.getName(),isAnonymous);
+					return chat(messageString, userChannelMap.get(user), user.getName(),isAnonymous,privateChatUserName);
 				}	
 			}
 		}
