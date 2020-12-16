@@ -122,7 +122,7 @@ public class Server {
 	
 	public boolean joinChannel(MainClientsThread client,Channel channel,String passwordString) {
 		if(channel.isEncrypted()) {
-			if(passwordString != channel.getPasswordString()) {
+			if(!passwordString.equals(channel.getPasswordString())) {
 				sendMsg(client.getWriter(), "ÆµµÀÃÜÂë´íÎó");
 				return false;
 			}
