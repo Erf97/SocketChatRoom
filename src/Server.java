@@ -110,21 +110,21 @@ public class Server {
 	 * @param userNameString 发送人昵称
 	 * @return
 	 */
-	public boolean chat(String msgString,Channel channel,String userNameString,boolean isAnonymous,String toUserName) {
+	public boolean chat(String msgString,Channel channel,String userNameString,boolean isAnonymous) {
 		if(isAnonymous) {
 			userNameString = "匿名用户";
 		}
-		if(toUserName == null) {
-			for(int i=0;i<channel.getClients().size();i++) {
+		for(int i=0;i<channel.getClients().size();i++) {
 			sendMsg(channel.getClients().get(i).getWriter(),(userNameString + "说：" + msgString));
-			}
 		}
-		else {
-			for(int i=0; i<channel.getClients().size(); i++){
-				MainClientsThread clientThread = channel.getClients().get(i);
-				if(clientThread.getUser().getName().equals(toUserName)||clientThread.getUser().getName().equals(userNameString)) {
-					sendMsg(clientThread.getWriter(),(userNameString + "私聊" + toUserName + "说：" + msgString));
-				}
+		return true;
+	}
+	
+	public boolean chat(String msgString,Channel channel,String userNameString,boolean isAnonymous,String toUserName) {
+		for(int i=0; i<channel.getClients().size(); i++){
+			MainClientsThread clientThread = channel.getClients().get(i);
+			if(clientThread.getUser().getName().equals(toUserName)||clientThread.getUser().getName().equals(userNameString)) {
+				sendMsg(clientThread.getWriter(),(userNameString + "私聊" + toUserName + "说：" + msgString));
 			}
 		}
 		return true;
@@ -313,7 +313,10 @@ public class Server {
 					return true;
 				}
 				else {
-					return chat(messageString, userChannelMap.get(user), user.getName(),isAnonymous,privateChatUserName);
+					if(privateChatUserName == null)
+						return chat(messageString, userChannelMap.get(user), user.getName(),isAnonymous);
+					else
+						return chat(messageString, userChannelMap.get(user), user.getName(),isAnonymous,privateChatUserName);
 				}	
 			}
 		}
