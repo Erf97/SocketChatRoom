@@ -100,10 +100,10 @@ public class Client {
 				if(flag){
 					switch(msgString){
 					case "/help":
-						System.out.println("创建频道：/create + 频道名  " + "查询频道列表：/list                  " + "加入频道：/join + 频道名\n" +
-										   "私聊：/to                " + "显示频道内用户：/userlist             " + "匿名：/anonymous\n" +
-										   "去匿：/no-anonymous      " + "不接收某用户的消息：/block             " + "发起一项投票：/vote\n" +
-										   "全频道广播：/all           " + "将频道内某个用户设置为特别关注：/special  " + "退出频道：/exit\n");
+						System.out.println("创建频道：/create + 频道名" + "\t\t查询频道列表：/list" + "\t\t\t\t加入频道：/join + 频道名\n" +
+										   "私聊：/to" + "\t\t\t\t显示频道内用户：/userlist" + "\t\t\t匿名：/anonymous\n" +
+										   "去匿：/no-anonymous" + "\t\t\t不接收某用户的消息：/block" + "\t\t\t发起一项投票：/vote\n" +
+										   "全频道广播：/all" + "\t\t\t\t将频道内某个用户设置为特别关注：/special  " + "\t退出频道：/exit\n");
 							
 					}
 				}
