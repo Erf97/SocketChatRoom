@@ -1,3 +1,4 @@
+package chatroom;
 
 public class User {
 
