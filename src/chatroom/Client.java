@@ -79,10 +79,10 @@ public class Client {
 				chatSocket = new Socket(hostIpString,port);
 				chatReader = new BufferedReader(new InputStreamReader(chatSocket.getInputStream()));
 				chatWriter = new PrintWriter(chatSocket.getOutputStream());
+				isInChatChannel = true;
 				new ChatMsgReceiveThread().start();
 				sendMessage(chatWriter, "#info");
 				sendMessage(chatWriter,userNameString + " " + mainSocket.getLocalAddress().toString());
-				isInChatChannel = true;
 				return true;
 			}catch (Exception e) {
 				e.printStackTrace();
