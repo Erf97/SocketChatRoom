@@ -35,6 +35,8 @@ public class Client {
 			Arrays.asList("/create","/list","/update_channel"));
 	public static ArrayList<String> localMenu= new ArrayList<String>(
 			Arrays.asList("/help","/join"));
+	public static ArrayList<String> chatMenu= new ArrayList<String>(
+			Arrays.asList("/exit"));
 	// TODO 加入聊天命令菜单和文件命令菜单
 	
 	private boolean isConnected = false;
@@ -252,7 +254,7 @@ public class Client {
 						break;
 					}
 				}
-				else if(msgString.equals("/exit")) {
+				else if(Utils.isChatCommand(msgString)) {
 					if(!isInChatChannel && !isInFileChannel) System.out.println("当前未加入频道");
 					else sendMessage(chatWriter, msgString);
 				}

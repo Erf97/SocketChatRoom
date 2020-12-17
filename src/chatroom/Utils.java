@@ -39,9 +39,13 @@ public class Utils {
 		return null;
 	}
 	
-	public static boolean isChatCommand() {
-		// TODO 
-		return true;
+	public static boolean isChatCommand(String commString) {
+		for(int i=0;i<Client.chatMenu.size();i++) {
+			if(commString.contains(Client.chatMenu.get(i))) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	// TODO getChatCommand
