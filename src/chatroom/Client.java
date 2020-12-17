@@ -196,6 +196,10 @@ public class Client {
 				while(isInChatChannel) {
 					try {
 						msgString = chatReader.readLine();
+						if(msgString.equals("exit000")) {
+							isInChatChannel = false;
+							break;
+						}
 						System.out.println(msgString);
 					} catch (IOException e) {
 						System.out.println("连接意外中断！");
@@ -230,6 +234,9 @@ public class Client {
 						if(!sTokenizer.hasMoreTokens()) {
 							System.out.println("缺失频道名，请重新输入");
 						}
+						else if(isInChatChannel || isInFileChannel) {
+							System.out.println("已经加入频道，请先退出当前频道");
+						}
 						else {
 							nameString = sTokenizer.nextToken();
 							sendMessage(mainWriter, "/update_channel");
@@ -244,6 +251,10 @@ public class Client {
 						}
 						break;
 					}
+				}
+				else if(msgString.equals("/exit")) {
+					if(!isInChatChannel && !isInFileChannel) System.out.println("当前未加入频道");
+					else sendMessage(chatWriter, msgString);
 				}
 				else if(Utils.isMainCommand(msgString)) {
 					sendMessage(mainWriter,msgString);

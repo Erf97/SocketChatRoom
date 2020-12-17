@@ -13,11 +13,13 @@ public class ChatClientThread extends Thread {
 	private PrintWriter writer;
 	private User user;
 	private ChatServerThread chatServer;
+	private boolean isConnect;
 	
 	public ChatClientThread(Socket socket,ChatServerThread chatServer) {
 		super();
 		this.socket = socket;
 		this.chatServer = chatServer;
+		this.isConnect = true;
 		try {
 			this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			this.writer = new PrintWriter(socket.getOutputStream());
@@ -45,6 +47,8 @@ public class ChatClientThread extends Thread {
 		switch (cmdString) {
 		case "/exit":
 			//TODO 离开频道
+			chatServer.boardCast(user.getName()+"已经离开频道");
+			this.isConnect = false;
 			return true;
 		
 		default:
@@ -56,7 +60,7 @@ public class ChatClientThread extends Thread {
 
 	public void run() {
 		String msgString = null;
-		while(true) {
+		while(this.isConnect) {
 			try {
 				msgString = reader.readLine();
 				if(msgString.equals("#ping")) {
@@ -80,6 +84,7 @@ public class ChatClientThread extends Thread {
 			}
 		}
 		try {
+			Server.sendMsg(writer, "exit000");
 			writer.close();
 			reader.close();
 			socket.close();
