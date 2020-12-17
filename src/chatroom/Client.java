@@ -22,6 +22,8 @@ public class Client {
 	private Socket chatSocket;
 	private PrintWriter chatWriter;
 	private BufferedReader chatReader;
+	// TODO 文件的三件套 注意文件的Writer和Reader的类型可能会不一样
+	
 	private String hostIpString = "127.0.0.1";
 	private String userNameString;
 	

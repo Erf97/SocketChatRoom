@@ -17,13 +17,13 @@ import java.util.StringTokenizer;
  * 
  * @author Erfan
  * 所有变量&函数请使用驼峰命名
+ * 如果需要在子线程中改变公共变量，必须使用公共变量所在类提供的方法，且该方法必须用synchronized修饰，不可直接修改
  */
 public class Server {
 	
 	private static int port = 1000;
 	private ServerSocket mainServerSocket;
 	private ArrayList<ServerThread> channeList;
-//	private static Map<ChatClientThread, ChatServerThread> clientChatServerMap;
 	
 	public static void main(String[] args) throws IOException {
 		new Server();
@@ -32,7 +32,6 @@ public class Server {
 	public Server() throws IOException {
 		this.mainServerSocket = new ServerSocket(getPort());
 		this.channeList = new ArrayList<ServerThread>();
-//		this.clientChatServerMap = new HashMap<ChatClientThread, ChatServerThread>();
 		MainServerThread mainServerThread = new MainServerThread(mainServerSocket);
 		mainServerThread.start();
 	}
@@ -40,16 +39,6 @@ public class Server {
 	synchronized public static int getPort() {
 		return port++;
 	}
-	
-//	synchronized public static ChatServerThread getServerThread(ChatClientThread cThread) {
-//		return clientChatServerMap.get(cThread);
-//	}
-//	
-//	synchronized public static void putChatServerThread(ChatClientThread cThread,ChatServerThread s) {
-//		clientChatServerMap.put(cThread,s);
-//	}
-	
-	// TODO removeServerThread
 	
 	public static void sendMsg(PrintWriter writer,String msgString) {
 		writer.println(msgString);
