@@ -23,7 +23,7 @@ public class Server {
 	private static int port = 1000;
 	private ServerSocket mainServerSocket;
 	private ArrayList<ServerThread> channeList;
-	private static Map<ChatClientThread, ChatServerThread> clientChatServerMap;
+//	private static Map<ChatClientThread, ChatServerThread> clientChatServerMap;
 	
 	public static void main(String[] args) throws IOException {
 		new Server();
@@ -32,7 +32,7 @@ public class Server {
 	public Server() throws IOException {
 		this.mainServerSocket = new ServerSocket(getPort());
 		this.channeList = new ArrayList<ServerThread>();
-		this.clientChatServerMap = new HashMap<ChatClientThread, ChatServerThread>();
+//		this.clientChatServerMap = new HashMap<ChatClientThread, ChatServerThread>();
 		MainServerThread mainServerThread = new MainServerThread(mainServerSocket);
 		mainServerThread.start();
 	}
@@ -41,13 +41,13 @@ public class Server {
 		return port++;
 	}
 	
-	synchronized public static ChatServerThread getServerThread(ChatClientThread cThread) {
-		return clientChatServerMap.get(cThread);
-	}
-	
-	synchronized public static void putChatServerThread(ChatClientThread cThread,ChatServerThread s) {
-		clientChatServerMap.put(cThread,s);
-	}
+//	synchronized public static ChatServerThread getServerThread(ChatClientThread cThread) {
+//		return clientChatServerMap.get(cThread);
+//	}
+//	
+//	synchronized public static void putChatServerThread(ChatClientThread cThread,ChatServerThread s) {
+//		clientChatServerMap.put(cThread,s);
+//	}
 	
 	// TODO removeServerThread
 	
@@ -186,10 +186,6 @@ public class Server {
 				
 			case "/list":
 				sendMsg(writer, getChannelList());
-				return true;
-			
-			case "/join": //º”»Î∆µµ¿
-				
 				return true;
 			
 			default:

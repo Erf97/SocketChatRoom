@@ -163,7 +163,6 @@ public class Client {
 			while(isConnected) {
 				try {
 					msgString = mainReader.readLine();
-//					System.out.println("134:" + msgString);
 					if(msgString.contains("#channel&")) {
 						System.out.println(getChannelList(msgString));
 						continue;

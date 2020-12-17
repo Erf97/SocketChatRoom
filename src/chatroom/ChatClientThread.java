@@ -14,9 +14,10 @@ public class ChatClientThread extends Thread {
 	private User user;
 	private ChatServerThread chatServer;
 	
-	public ChatClientThread(Socket socket) {
+	public ChatClientThread(Socket socket,ChatServerThread chatServer) {
 		super();
 		this.socket = socket;
+		this.chatServer = chatServer;
 		try {
 			this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			this.writer = new PrintWriter(socket.getOutputStream());
@@ -55,7 +56,7 @@ public class ChatClientThread extends Thread {
 
 	public void run() {
 		String msgString = null;
-		chatServer = Server.getServerThread(this);
+//		chatServer = Server.getServerThread(this);
 		while(true) {
 			try {
 				msgString = reader.readLine();

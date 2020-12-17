@@ -38,9 +38,9 @@ private ArrayList<ChatClientThread> chatClientsList;
 		while(true) {
 			try {
 				Socket socket = getServerSocket().accept();
-				ChatClientThread client = new ChatClientThread(socket);
+				ChatClientThread client = new ChatClientThread(socket,this);
 				chatClientsList.add(client);
-				Server.putChatServerThread(client, this);
+//				Server.putChatServerThread(client, this);
 				client.start();
 				System.out.println("channel "+ getChannel().getNameString() + 
 						" has "+ getClientNum() + " members");
