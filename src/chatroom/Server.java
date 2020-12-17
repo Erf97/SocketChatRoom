@@ -83,8 +83,14 @@ public class Server {
 		return true;
 	}
 	
-	public String getChannelList() {
-		String listString = "#channel&";
+	public String getChannelList(boolean isShow) {
+		String listString = null;
+		if(isShow) {
+			listString = "#channel&";
+		}
+		else {
+			listString = "#channel-not-show&";
+		}
 		for(int i=0;i<channeList.size();i++) {
 			ServerThread serverThread = channeList.get(i);
 			Channel channel = serverThread.getChannel();
@@ -113,7 +119,7 @@ public class Server {
 					Socket socket = mainServerSocket.accept();
 					MainClientThread client = new MainClientThread(socket);
 					client.start();
-					sendMsg(client.getWriter(), getChannelList());
+					sendMsg(client.getWriter(), getChannelList(true));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -178,14 +184,22 @@ public class Server {
 				String type = sTokenizer.hasMoreTokens()?sTokenizer.nextToken():null;
 				String passwordString = sTokenizer.hasMoreTokens()?sTokenizer.nextToken():null;
 				if(createChannel(nameString,passwordString,type)) {
+					sendMsg(writer, "正在拉取频道信息...");
+					sendMsg(writer, getChannelList(true));
 					return true;
 				}
 				else {
 					sendMsg(writer, "创建频道失败");
+					return false;
 				}
 				
 			case "/list":
-				sendMsg(writer, getChannelList());
+				sendMsg(writer, "正在拉取频道信息...");
+				sendMsg(writer, getChannelList(true));
+				return true;
+				
+			case "/update_channel":
+				sendMsg(writer, getChannelList(false));
 				return true;
 			
 			default:

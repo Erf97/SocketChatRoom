@@ -68,6 +68,7 @@ public class ChatClientThread extends Thread {
 					msgString = reader.readLine();
 					StringTokenizer sTokenizer = new StringTokenizer(msgString);
 					this.user = new User(sTokenizer.nextToken(), sTokenizer.nextToken());
+					chatServer.boardCast("ª∂”≠"+user.getName()+"Ω¯»Î∆µµ¿");
 				}
 				else {
 					if(!prase(msgString)) {

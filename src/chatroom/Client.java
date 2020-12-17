@@ -29,8 +29,10 @@ public class Client {
 	private Map<String, String> nameTypeMap;
 	
 	private static Scanner sc = new Scanner(System.in);
-	public static ArrayList<String> mainMenu= new ArrayList<String>(Arrays.asList("/create","/list"));
-	public static ArrayList<String> localMenu= new ArrayList<String>(Arrays.asList("/help","/join"));
+	public static ArrayList<String> mainMenu= new ArrayList<String>(
+			Arrays.asList("/create","/list","/update_channel"));
+	public static ArrayList<String> localMenu= new ArrayList<String>(
+			Arrays.asList("/help","/join"));
 	// TODO 加入聊天命令菜单和文件命令菜单
 	
 	private boolean isConnected = false;
@@ -167,6 +169,10 @@ public class Client {
 						System.out.println(getChannelList(msgString));
 						continue;
 					}
+					else if(msgString.contains("#channel-not-show&")) {
+						getChannelList(msgString);
+						continue;
+					}
 					System.out.println(msgString);
 				} catch (IOException e) {
 					System.out.println("连接意外中断！");
@@ -224,7 +230,7 @@ public class Client {
 						}
 						else {
 							nameString = sTokenizer.nextToken();
-							sendMessage(mainWriter, "/list");
+							sendMessage(mainWriter, "/update_channel");
 							if(namePortMap.get(nameString) == null) {
 								System.out.println("没有找到该频道，请重新输入");
 							}

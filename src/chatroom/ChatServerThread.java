@@ -40,10 +40,7 @@ private ArrayList<ChatClientThread> chatClientsList;
 				Socket socket = getServerSocket().accept();
 				ChatClientThread client = new ChatClientThread(socket,this);
 				chatClientsList.add(client);
-//				Server.putChatServerThread(client, this);
 				client.start();
-				System.out.println("channel "+ getChannel().getNameString() + 
-						" has "+ getClientNum() + " members");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
