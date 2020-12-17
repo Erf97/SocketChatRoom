@@ -67,7 +67,6 @@ public class ChatClientThread extends Thread {
 					msgString = reader.readLine();
 					StringTokenizer sTokenizer = new StringTokenizer(msgString);
 					this.user = new User(sTokenizer.nextToken(), sTokenizer.nextToken());
-					System.out.println("received user info");
 				}
 				else {
 					if(!prase(msgString)) {

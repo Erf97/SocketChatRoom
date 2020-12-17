@@ -101,7 +101,7 @@ public class Client {
 			BufferedReader testReader = new BufferedReader(new InputStreamReader(testSocket
 					.getInputStream()));
 			sendMessage(testWriter, "#ping");
-			System.out.println(testReader.readLine());
+			testReader.readLine();
 			double endtime = System.nanoTime();
 			double costTime = (endtime - begintime)/1000000;
 			testWriter.close();
@@ -243,7 +243,6 @@ public class Client {
 				}
 				else {
 					if(isInChatChannel) {
-						System.out.println("sent to chat channel");
 						sendMessage(chatWriter, msgString);
 					}
 					else if(isInFileChannel) {

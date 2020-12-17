@@ -23,9 +23,7 @@ private ArrayList<ChatClientThread> chatClientsList;
 	}
 
 	public void chat(String userNameString,String msgString) {
-		System.out.println(chatClientsList.size());
 		for(int i=0;i<chatClientsList.size();i++) {
-			System.out.println(userNameString+":"+msgString);
 			Server.sendMsg(chatClientsList.get(i).getWriter(), userNameString+":"+msgString);
 		}
 	}
