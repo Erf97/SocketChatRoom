@@ -128,23 +128,6 @@ public class Server {
 		}
 	}
 	
-	class FileServerThread extends ServerThread {
-		
-		private ArrayList<FileClientThread> fileClientsList;
-		
-		public FileServerThread(ServerSocket fileServerSocket, Channel channel, int port) {
-			super(fileServerSocket, channel, port);
-			this.fileClientsList = new ArrayList<FileClientThread>();
-		}
-		
-		// TODO 文件线程
-	}
-	
-	class FileClientThread extends Thread {
-		
-		// TODO 文件客户线程
-	}
-	
 	class MainClientThread extends Thread {
 		
 		private Socket socket;
