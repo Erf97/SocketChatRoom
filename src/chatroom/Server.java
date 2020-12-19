@@ -49,10 +49,7 @@ public class Server {
 		if(nameString == null || (type == null || (!type.equals("chat") && !type.equals("file")))){
 			return false;
 		}
-		ServerSocket serverSocket;
 		try {
-			int port = getPort();
-			serverSocket = new ServerSocket(port);
 			Channel channel;
 			if(passwordString == null) {
 				channel = new Channel(nameString, type);
@@ -61,9 +58,20 @@ public class Server {
 				channel = new Channel(nameString,true,passwordString,type);
 			}
 			if(type.equals("chat")) {
+				int port = getPort();
+				ServerSocket serverSocket = new ServerSocket(port);
 				ChatServerThread chatServerThread = new ChatServerThread(serverSocket, channel, port);
 				channeList.add(chatServerThread);
 				chatServerThread.start();
+			}
+			else if(type.equals("file")) {
+				int messagePort =getPort();
+				ServerSocket messageServerSocket = new ServerSocket(messagePort);
+				int filePort = getPort();
+				ServerSocket fileServerSocket = new ServerSocket(filePort);
+				FileServerThread fileServerThread = new FileServerThread(fileServerSocket,messageServerSocket, channel, filePort,messagePort);
+				channeList.add(fileServerThread);
+				fileServerThread.start();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
