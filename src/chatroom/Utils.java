@@ -50,9 +50,13 @@ public class Utils {
 	
 	// TODO getChatCommand
 	
-	public static boolean isFileCommand() {
-		// TODO
-		return true;
+	public static boolean isFileCommand(String commString) {
+		for(int i=0;i<Client.fileMenu.size();i++) {
+			if(commString.contains(Client.fileMenu.get(i))) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	// TODO getFileCommand

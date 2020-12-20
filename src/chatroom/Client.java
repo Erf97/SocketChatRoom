@@ -1,5 +1,14 @@
 package chatroom;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -22,10 +31,15 @@ public class Client {
 	private Socket chatSocket;
 	private PrintWriter chatWriter;
 	private BufferedReader chatReader;
+	private Socket fileSocket;
+	private DataOutputStream fileWriter;
+	private DataInputStream fileReader;
 	// TODO 文件的三件套 注意文件的Writer和Reader的类型可能会不一样
 	
 	private String hostIpString = "127.0.0.1";
+	private int filePort;
 	private String userNameString;
+	private String savePathString = "D:/";
 	
 	private Map<String, Integer> namePortMap;
 	private Map<String, String> nameTypeMap;
@@ -37,7 +51,8 @@ public class Client {
 			Arrays.asList("/help","/join"));
 	public static ArrayList<String> chatMenu= new ArrayList<String>(
 			Arrays.asList("/exit"));
-	// TODO 加入聊天命令菜单和文件命令菜单
+	public static ArrayList<String> fileMenu= new ArrayList<String>(
+			Arrays.asList("/exit","/filelist","/fileup","/filedown"));
 	
 	private boolean isConnected = false;
 	private boolean isInChatChannel = false;
@@ -85,17 +100,32 @@ public class Client {
 				chatSocket = new Socket(hostIpString,port);
 				chatReader = new BufferedReader(new InputStreamReader(chatSocket.getInputStream()));
 				chatWriter = new PrintWriter(chatSocket.getOutputStream());
-				isInChatChannel = true;
-				new ChatMsgReceiveThread().start();
-				sendMessage(chatWriter, "#info");
-				sendMessage(chatWriter,userNameString + " " + mainSocket.getLocalAddress().toString());
-				return true;
 			}catch (Exception e) {
 				e.printStackTrace();
 				return false;
 			}
+			isInChatChannel = true;
+			new ChannelMsgReceiveThread().start();
+			sendMessage(chatWriter, "#info");
+			sendMessage(chatWriter,userNameString + " " + mainSocket.getLocalAddress().toString());
+			return true;
 		}
-		// TODO: 连接文件频道
+		else if(type.equals("file")){
+			try {
+				chatSocket = new Socket(hostIpString,port);
+				chatReader = new BufferedReader(new InputStreamReader(chatSocket.getInputStream()));
+				chatWriter = new PrintWriter(chatSocket.getOutputStream());
+				sendMessage(chatWriter, "#info");
+				sendMessage(chatWriter,userNameString + " " + mainSocket.getLocalAddress().toString());
+				filePort = Integer.valueOf(chatReader.readLine());
+			}catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+			isInFileChannel = true;
+			new ChannelMsgReceiveThread().start();
+			return true;
+		}
 		return true;
 	}
 	
@@ -116,6 +146,7 @@ public class Client {
 			return costTime;
 		} catch (Exception e) {
 			e.printStackTrace();
+			System.out.println(port);
 			return -1;
 		}
 	}
@@ -149,6 +180,58 @@ public class Client {
 	public void sendMessage(PrintWriter writer,String message) {
 		writer.println(message);
 		writer.flush();
+	}
+	
+	public void sendFile(File file) {
+		try {
+			fileReader = new DataInputStream(new BufferedInputStream(
+					new FileInputStream(file)));
+			fileWriter = new DataOutputStream(fileSocket.getOutputStream());
+			fileWriter.writeLong(((long) file.length()));
+			fileWriter.flush();
+			int bufferSize = 8192;
+			byte[] buf = new byte[bufferSize];
+			while (true) {
+				int read = 0;
+				if (fileReader != null) {
+					read = fileReader.read(buf);
+				}
+				if (read == -1) {
+					break;
+				}
+				fileWriter.write(buf, 0, read);
+			}
+			fileWriter.flush();
+			fileReader.close();
+			fileWriter.close();
+		} catch (IOException e) {
+			System.out.println("请输入正确的文件路径");
+			e.printStackTrace();
+		}
+	}
+	
+	public void downloadFile(File file) {
+		try {
+			DataOutputStream localFileWriter = new DataOutputStream(
+					new BufferedOutputStream(new BufferedOutputStream(new FileOutputStream(file))));
+			fileReader = new DataInputStream(new BufferedInputStream(fileSocket.getInputStream()));
+			int bufferSize = 8192;
+			byte[] buf = new byte[bufferSize];
+			while (true) {
+				int read = 0;
+				if (fileReader != null)
+					read = fileReader.read(buf);
+				if (read == -1)
+					break;
+				localFileWriter.write(buf,0,read);
+			}
+			System.out.println("下载完成");
+			fileReader.close();
+			localFileWriter.flush();
+			localFileWriter.close();
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public static void main(String[] args) {
@@ -187,25 +270,32 @@ public class Client {
 		}
 	}
 	
-	class ChatMsgReceiveThread extends Thread {
+	class ChannelMsgReceiveThread extends Thread {
 			
-			public ChatMsgReceiveThread() {
+			public ChannelMsgReceiveThread() {
 				super();
 			}
 			
 			public void run() {
 				String msgString = "";
-				while(isInChatChannel) {
+				while(isInChatChannel || isInFileChannel) {
 					try {
 						msgString = chatReader.readLine();
 						if(msgString.equals("exit000")) {
-							isInChatChannel = false;
+							System.out.println("离开");
+							if(isInChatChannel)
+								isInChatChannel = false;
+							if(isInFileChannel)
+								isInFileChannel = false;
 							break;
 						}
 						System.out.println(msgString);
 					} catch (IOException e) {
 						System.out.println("连接意外中断！");
-						isInChatChannel = false;
+						if(isInChatChannel)
+							isInChatChannel = false;
+						if(isInFileChannel)
+							isInFileChannel = false;
 						e.printStackTrace();
 					}
 				}
@@ -261,12 +351,61 @@ public class Client {
 				else if(Utils.isMainCommand(msgString)) {
 					sendMessage(mainWriter,msgString);
 				}
+				else if(Utils.isFileCommand(msgString)) {
+					if(!isInFileChannel) System.out.println("当前未加入文件频道");
+					else {
+						StringTokenizer sTokenizer = new StringTokenizer(msgString,"|");
+						String headString = sTokenizer.nextToken();
+						switch(headString){
+						case "/fileup":
+							if(!sTokenizer.hasMoreTokens()) {
+								System.out.println("请输入正确的文件路径");
+							}
+							else {
+								sendMessage(chatWriter, "/fileup");
+								String fileNameString = sTokenizer.nextToken();
+								System.out.println(fileNameString);
+								File file = new File(fileNameString);
+								sendMessage(chatWriter, file.getName());
+								try {
+									fileSocket = new Socket(hostIpString,filePort);
+									sendFile(file);
+								}  catch (IOException e) {
+									e.printStackTrace();
+								}
+							}
+							break;
+							
+						case "/filedown":
+							if(!sTokenizer.hasMoreTokens()) {
+								System.out.println("请输入正确的文件路径");
+							}
+							else {
+								sendMessage(chatWriter, "/filedown");
+								String fileNameString = sTokenizer.nextToken();
+								System.out.println(fileNameString);
+								String localFileName = new File(fileNameString).getName();
+								File file = new File(savePathString + localFileName);
+								sendMessage(chatWriter, fileNameString);
+								try {
+									fileSocket = new Socket(hostIpString,filePort);
+									downloadFile(file);
+								}  catch (IOException e) {
+									e.printStackTrace();
+								}
+							}
+							break;
+						
+						default:
+							break;
+						}
+					}
+				}
 				else {
 					if(isInChatChannel) {
 						sendMessage(chatWriter, msgString);
 					}
 					else if(isInFileChannel) {
-						// TODO 文件发送逻辑
 						
 					}
 					else

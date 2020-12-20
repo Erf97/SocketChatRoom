@@ -67,9 +67,7 @@ public class Server {
 			else if(type.equals("file")) {
 				int messagePort =getPort();
 				ServerSocket messageServerSocket = new ServerSocket(messagePort);
-				int filePort = getPort();
-				ServerSocket fileServerSocket = new ServerSocket(filePort);
-				FileServerThread fileServerThread = new FileServerThread(fileServerSocket,messageServerSocket, channel, filePort,messagePort);
+				FileServerThread fileServerThread = new FileServerThread(messageServerSocket, channel, messagePort);
 				channeList.add(fileServerThread);
 				fileServerThread.start();
 			}
@@ -95,7 +93,7 @@ public class Server {
 						+ serverThread.getClientNum() + "\t"
 						+ channel.isEncrypted() + "\t"
 						+ channel.getType() + "\t"
-						+ serverThread.getPort() + "\n";
+						+ serverThread.getPort() + "&";
 		}
 		System.out.println(listString);
 		return listString;
